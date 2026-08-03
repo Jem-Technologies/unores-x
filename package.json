@@ -1,0 +1,39 @@
+{
+  "name": "unores-x",
+  "version": "2.0.0",
+  "description": "Grammar-driven & metadata-driven runtime CSS engine (zero build step required)",
+  "main": "dist/unores-x.cjs.js",
+  "module": "dist/unores-x.esm.js",
+  "unpkg": "dist/unores-x.min.js",
+  "jsdelivr": "dist/unores-x.min.js",
+  "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/unores-x.esm.js",
+      "require": "./dist/unores-x.cjs.js",
+      "script": "./dist/unores-x.min.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "index.d.ts",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node scripts/build.js",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "css",
+    "runtime-css",
+    "utility-css",
+    "atomic-css",
+    "unores",
+    "unores-x",
+    "styling"
+  ],
+  "author": "Jem-Technologies",
+  "license": "MIT"
+}
