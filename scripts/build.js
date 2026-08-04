@@ -64,14 +64,60 @@ cjsBundle += 'module.exports = UnoresX;\n';
 
 fs.writeFileSync(path.join(distDir, 'unores-x.cjs.js'), cjsBundle);
 
-// 4. Minified IIFE (unores-x.min.js - basic minification pass)
-let minified = iifeBundle
-  .replace(/\/\*[\s\S]*?\*\//g, '')
-  .replace(/\/\/.*/g, '')
-  .replace(/\s+/g, ' ')
-  .replace(/\s*([{}();:=,+\-\/*])\s*/g, '$1');
+// 4. Minified IIFE (unores-x.min.js)
+const { execSync } = require('child_process');
+let minifiedSuccessfully = false;
 
-fs.writeFileSync(path.join(distDir, 'unores-x.min.js'), minified);
+try {
+  const terserCmd = process.platform === 'win32'
+    ? `cmd /c npx terser "${path.join(distDir, 'unores-x.js')}" -o "${path.join(distDir, 'unores-x.min.js')}" -c -m`
+    : `npx terser "${path.join(distDir, 'unores-x.js')}" -o "${path.join(distDir, 'unores-x.min.js')}" -c -m`;
+  execSync(terserCmd, { stdio: 'inherit' });
+  minifiedSuccessfully = true;
+} catch (err) {
+  console.warn('⚠️ Terser minification failed or not installed, using safe fallback...');
+}
+
+if (!minifiedSuccessfully) {
+  // Safe state-machine comment stripper fallback (doesn't break regex literals)
+  function safeMinify(code) {
+    let result = '';
+    let i = 0, len = code.length;
+    let inString = false, stringChar = '';
+    let inRegex = false;
+    let inLineComment = false, inBlockComment = false;
+
+    while (i < len) {
+      let char = code[i], next = code[i + 1];
+      if (inLineComment) {
+        if (char === '\n') { inLineComment = false; result += '\n'; }
+        i++; continue;
+      }
+      if (inBlockComment) {
+        if (char === '*' && next === '/') { inBlockComment = false; i += 2; continue; }
+        i++; continue;
+      }
+      if (inString) {
+        result += char;
+        if (char === '\\') { result += next; i += 2; continue; }
+        if (char === stringChar) { inString = false; }
+        i++; continue;
+      }
+      if (inRegex) {
+        result += char;
+        if (char === '\\') { result += next; i += 2; continue; }
+        if (char === '/') { inRegex = false; }
+        i++; continue;
+      }
+      if (char === '/' && next === '/') { inLineComment = true; i += 2; continue; }
+      if (char === '/' && next === '*') { inBlockComment = true; i += 2; continue; }
+      if (char === "'" || char === '"' || char === '`') { inString = true; stringChar = char; result += char; i++; continue; }
+      result += char; i++;
+    }
+    return result.replace(/^\s*[\r\n]/gm, '');
+  }
+  fs.writeFileSync(path.join(distDir, 'unores-x.min.js'), safeMinify(iifeBundle));
+}
 
 console.log('✨ Unores-X build complete!');
 console.log('   - dist/unores-x.js');

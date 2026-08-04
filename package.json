@@ -1,6 +1,6 @@
 {
   "name": "unores-x",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Grammar-driven & metadata-driven runtime CSS engine (zero build step required)",
   "main": "dist/unores-x.cjs.js",
   "module": "dist/unores-x.esm.js",
